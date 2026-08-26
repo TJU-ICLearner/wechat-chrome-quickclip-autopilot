@@ -83,6 +83,22 @@ $wechat-chrome-quickclip-autopilot https://mp.weixin.qq.com/s/...
 
 也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。调用过程中 Chrome 会短暂前置；不要在等待与快捷键发送之间切换到其他应用或标签页。
 
+### 推荐入口：直接调用 Codex / Claudian
+
+日常使用优先直接在 Codex 对话中粘贴链接，或在 Obsidian 的 Claudian 中选择 **Codex provider** 后调用本 Skill。这条路径没有 cc-connect 的微信回信额度，完成结果可以正常返回到当前任务。
+
+### 可选入口：cc-connect / 微信
+
+cc-connect 可以把手机微信里的 `/new + 公众号链接` 转为 Codex 任务，适合不在电脑旁时收集文章；它不是运行本 Skill 的必需组件。完成剪藏和整理的机器仍需处于可操作状态，并具有本 README 中的 Chrome、Web Clipper 与辅助功能授权。
+
+需要注意 cc-connect 的发送保护：它会在本地配置中以一个**滚动 24 小时窗口**限制向微信发送消息的次数（例如 `burst_window_secs=86400`，实际额度由项目配置决定），而微信/iLink 服务端还可能施加额外频率限制。因此，任务即使已经执行完毕，最终回信仍可能因 24 小时额度耗尽而无法送达；提高本地限额并不会提高服务端额度，反而更容易触发服务端限流。
+
+建议策略：
+
+- 用微信/cc-connect 只做低频、异地的文章投递；一次任务只回传最终结果，避免进度消息消耗额度。
+- 高密度收集、调试与确认处理结果时，直接使用 Codex 或 Claudian 的 Codex provider。
+- 若经 cc-connect 投递后没有收到回信，以 `<vault>/raw/articles/`、`wiki/sources/`、`wiki/index.md` 与 `wiki/log.md` 是否出现对应条目作为完成依据。
+
 单独测试剪藏脚本：
 
 ```zsh
