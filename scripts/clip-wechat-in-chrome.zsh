@@ -101,6 +101,7 @@ fi
 
 if ! osascript <<'APPLESCRIPT'
 tell application "Google Chrome" to activate
+delay 0.4
 tell application "System Events"
   tell process "Google Chrome"
     keystroke "o" using {option down, shift down}

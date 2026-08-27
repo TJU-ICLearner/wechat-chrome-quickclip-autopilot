@@ -83,7 +83,7 @@ export WECHAT_CLIP_POLL_ATTEMPTS=30
 $wechat-chrome-quickclip-autopilot https://mp.weixin.qq.com/s/...
 ```
 
-也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。它每隔 3 秒读取一次 Chrome 的**原生页面加载状态**，最多 5 次；不会执行页面 JavaScript，也不会读取、保存或上传正文。页面停止加载后才前置 Chrome 并发送一次快捷键，随后恢复此前的前台应用。这样不会因重复 Quick clip 产生重复笔记；若超时，则返回 `pending`，由用户处理登录、验证或网络问题后重试。
+也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。它每隔 3 秒读取一次 Chrome 的**原生页面加载状态**，最多 5 次；不会执行页面 JavaScript，也不会读取、保存或上传正文。页面停止加载后才前置 Chrome，等待 0.4 秒让键盘焦点稳定，再发送一次快捷键并恢复此前应用。这样不会因重复 Quick clip 产生重复笔记；若超时，则返回 `pending`，由用户处理登录、验证或网络问题后重试。
 
 ### 推荐入口：直接调用 Codex / Claudian
 
