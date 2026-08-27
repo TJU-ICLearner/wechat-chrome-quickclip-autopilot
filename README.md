@@ -65,7 +65,7 @@ git clone https://github.com/TJU-ICLearner/wechat-chrome-quickclip-autopilot.git
 export OBSIDIAN_VAULT_DIR="$HOME/Documents/My Vault"
 # 可选：不在默认 raw/articles 时设置
 export OBSIDIAN_RAW_DIR="$OBSIDIAN_VAULT_DIR/raw/articles"
-# 可选：渲染慢的页面可提高等待时间；默认 12 秒
+# 可选：渲染慢的页面可提高等待时间；默认 3 秒
 export WECHAT_CLIP_WAIT_SECONDS=15
 # 可选：每 2 秒检查一次，默认 30 次（约 60 秒）
 export WECHAT_CLIP_POLL_ATTEMPTS=30
@@ -81,7 +81,7 @@ export WECHAT_CLIP_POLL_ATTEMPTS=30
 $wechat-chrome-quickclip-autopilot https://mp.weixin.qq.com/s/...
 ```
 
-也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。调用过程中 Chrome 会短暂前置；不要在等待与快捷键发送之间切换到其他应用或标签页。
+也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。默认只等待 3 秒后发送快捷键，随后会自动回到此前的前台应用；不要在这 3 秒内切换应用或标签页。若某篇文章经常剪藏到不完整正文，再为该环境增大 `WECHAT_CLIP_WAIT_SECONDS`。
 
 ### 推荐入口：直接调用 Codex / Claudian
 

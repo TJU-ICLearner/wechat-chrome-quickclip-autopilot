@@ -8,7 +8,7 @@ raw_dir="${OBSIDIAN_RAW_DIR:-$vault_dir/raw/articles}"
 log_file="$vault_dir/.claudian/logs/wechat-chrome-clipper.log"
 lock_dir="$vault_dir/.claudian/wechat-chrome-clipper.lock"
 url="${1:-}"
-render_wait_seconds="${WECHAT_CLIP_WAIT_SECONDS:-12}"
+render_wait_seconds="${WECHAT_CLIP_WAIT_SECONDS:-3}"
 poll_attempts="${WECHAT_CLIP_POLL_ATTEMPTS:-30}"
 
 if [[ ! "$url" =~ '^https://mp\.weixin\.qq\.com/' ]]; then
@@ -30,6 +30,16 @@ trap 'rmdir "$lock_dir"' EXIT
 
 started_at="$(date '+%Y-%m-%d %H:%M:%S')"
 print -r -- "[$started_at] clipping requested: $url" >> "$log_file"
+
+# Restore the user's prior foreground app after Quick clip. If Chrome was
+# already frontmost, leave it there. Failing to read this is harmless: the
+# later keystroke still produces the authoritative permission result.
+previous_frontmost_app="$(osascript <<'APPLESCRIPT' 2>/dev/null || true
+tell application "System Events"
+  return name of first application process whose frontmost is true
+end tell
+APPLESCRIPT
+)"
 
 # This intentionally uses the user's normal Chrome profile, where Obsidian Web
 # Clipper is installed. Quick clip must already be configured to save directly
@@ -63,6 +73,14 @@ then
   print -r -- "[$(date '+%Y-%m-%d %H:%M:%S')] accessibility permission required" >> "$log_file"
   print -r -- '{"status":"permission_required","reason":"Allow osascript or the calling app to control Google Chrome in macOS Accessibility settings"}'
   exit 77
+fi
+
+if [[ -n "$previous_frontmost_app" && "$previous_frontmost_app" != "Google Chrome" ]]; then
+  osascript - "$previous_frontmost_app" <<'APPLESCRIPT' >/dev/null 2>&1 || true
+on run argv
+  tell application (item 1 of argv) to activate
+end run
+APPLESCRIPT
 fi
 
 # Web Clipper writes asynchronously through Obsidian. Confirm the saved raw
