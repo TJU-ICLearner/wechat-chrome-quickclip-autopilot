@@ -76,13 +76,22 @@ restore_previous_app
 article_ready=false
 for ((attempt = 1; attempt <= ready_poll_attempts; attempt++)); do
   sleep "$render_wait_seconds"
-  readiness="$(osascript <<'APPLESCRIPT' 2>/dev/null || true
+  if readiness_output="$(osascript 2>&1 <<'APPLESCRIPT'
 tell application "Google Chrome"
   if (count of windows) is 0 then return "waiting"
   return execute active tab of front window javascript "(() => { const article = document.getElementById('js_content'); return document.readyState === 'complete' && article && article.innerText.trim().length >= 200 ? 'ready' : 'waiting'; })()"
 end tell
 APPLESCRIPT
-)"
+)"; then
+    readiness="$readiness_output"
+  else
+    if [[ "$readiness_output" == *"Allow JavaScript from Apple Events"* || "$readiness_output" == *"允许 Apple 事件中的 JavaScript"* ]]; then
+      print -r -- "[$(date '+%Y-%m-%d %H:%M:%S')] Chrome Apple Events JavaScript is disabled" >> "$log_file"
+      print -r -- '{"status":"pending","reason":"Enable Chrome View > Developer > Allow JavaScript from Apple Events, then retry; the readiness check does not read or save article text"}'
+      exit 1
+    fi
+    readiness="waiting"
+  fi
   if [[ "$readiness" == "ready" ]]; then
     article_ready=true
     break

@@ -34,8 +34,10 @@ vault's `AGENTS.md` and `CLAUDE.md` for its storage and organization schema.
    - `chrome_unavailable`: ask the user to open their normal Chrome Profile
      containing Obsidian Web Clipper and make that window frontmost; never
      select, create, or infer a different Chrome Profile.
-   - `pending`: report that clipping was not confirmed and tell the user to
-     check that Web Clipper Quick clip targets `SOC Learning/raw/articles`.
+   - `pending`: report the stated local condition. If it requests Chrome's
+     “Allow JavaScript from Apple Events” setting, ask the user to enable that
+     one-time Chrome developer setting; otherwise check Web Clipper's target
+     folder and the Chrome loading/login state.
    - `error`: report the exact local validation failure without fetching a
      substitute source.
 4. Only after `captured`, organize that exact raw file using

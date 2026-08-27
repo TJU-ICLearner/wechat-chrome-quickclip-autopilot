@@ -44,6 +44,7 @@ wechat-chrome-quickclip-autopilot/
 - 已安装 [Obsidian Web Clipper](https://obsidian.md/clipper) 扩展，并且 **Quick clip** 配置为无需确认直接写入目标 vault 的 `raw/articles`。
 - Web Clipper 快捷键为 `⌥⇧O`；如有改动，请对应调整脚本。
 - macOS「系统设置 → 隐私与安全性 → 辅助功能」已允许 `/usr/bin/osascript` 发送按键。
+- 为启用无重复的后台正文就绪检查，在 Chrome 菜单栏选择「查看 → 开发者 → 允许 Apple 事件中的 JavaScript」。这是 Chrome 的一次性本地开关；检查只返回“正文是否就绪”的布尔结果，不读取或保存正文。
 - 需要一个 Obsidian vault；若希望自动生成知识库层，还应有 `AGENTS.md` / `CLAUDE.md` 说明 `raw/` 与 `wiki/` 的维护规则。
 
 ## 安装
