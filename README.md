@@ -41,7 +41,7 @@ wechat-chrome-quickclip-autopilot/
 
 - macOS，安装 `zsh`、`osascript`（系统自带）、`rg` 和 `jq`。
 - Google Chrome 正常安装；使用的是你日常的、包含文章登录态的 Profile。
-- 已安装 [Obsidian Web Clipper](https://obsidian.md/clipper) 扩展，目标 vault/文件夹为 `SOC Learning/raw/articles`。若快捷键会打开剪藏面板，需由用户点击“添加到 Obsidian”；本脚本只触发快捷键。
+- 已安装 [Obsidian Web Clipper](https://obsidian.md/clipper) 扩展，并且 **Quick clip** 配置为无需确认直接写入目标 vault 的 `raw/articles`。
 - Web Clipper 快捷键为 `⌥⇧O`；如有改动，请对应调整脚本。
 - macOS「系统设置 → 隐私与安全性 → 辅助功能」已允许 `/usr/bin/osascript` 发送按键。
 - 需要一个 Obsidian vault；若希望自动生成知识库层，还应有 `AGENTS.md` / `CLAUDE.md` 说明 `raw/` 与 `wiki/` 的维护规则。
@@ -81,7 +81,7 @@ export WECHAT_CLIP_POLL_ATTEMPTS=30
 $wechat-chrome-quickclip-autopilot https://mp.weixin.qq.com/s/...
 ```
 
-也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。它打开文章后固定等待 2 秒，再发送一次快捷键；不会执行页面 JavaScript，也不会读取、保存或上传正文。若 Web Clipper 打开剪藏面板，用户需点击“添加到 Obsidian”；若超时仍未落盘，则返回 `pending`。
+也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。它打开文章后固定等待 2 秒，再发送一次快捷键；不会执行页面 JavaScript，也不会读取、保存或上传正文。Quick clip 直接落盘；若超时仍未落盘，则返回 `pending`。
 
 ### 推荐入口：直接调用 Codex / Claudian
 
@@ -114,7 +114,7 @@ cc-connect 可以把手机微信里的 `/new + 公众号链接` 转为 Codex 任
 | `busy` | 另一篇文章仍在剪藏。 | 等待结束，不要并发发送快捷键。 |
 | `permission_required` | macOS 拒绝键盘自动化。 | 授权 `osascript` 辅助功能后重试。 |
 | `chrome_unavailable` | AppleScript 无法操作 Chrome。 | 打开带 Web Clipper 的日常 Chrome 窗口并置前。 |
-| `pending` | 快捷键已发送但未确认新文件。 | 检查 Chrome 的登录/验证/网络，以及 Web Clipper 的 Quick clip vault、文件夹和是否需要点击保存。 |
+| `pending` | 快捷键已发送但未确认新文件。 | 检查 Chrome 的登录/验证/网络，以及 Web Clipper 的 Quick clip vault、文件夹和模板。 |
 | `error` | URL 或配置参数不合法。 | 修正输入或环境变量。 |
 
 ## 安全边界
