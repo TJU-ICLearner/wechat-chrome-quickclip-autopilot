@@ -56,7 +56,7 @@ if ! osascript <<'APPLESCRIPT'
 tell application "Google Chrome" to activate
 tell application "System Events"
   tell process "Google Chrome"
-    keystroke "o" using {option down, shift down}
+    keystroke "p" using {command down, shift down}
   end tell
 end tell
 APPLESCRIPT

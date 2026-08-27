@@ -15,7 +15,7 @@ Skill 校验链接并锁定单次任务
         ↓
 日常 Chrome 前台打开文章
         ↓  固定等待 5 秒
-发送 Obsidian Web Clipper Quick clip 快捷键（默认 ⌥⇧O）
+发送 Obsidian Web Clipper Quick clip 快捷键（默认 ⇧⌘P）
         ↓
 Obsidian Web Clipper 写入 <vault>/raw/articles/
         ↓
@@ -42,7 +42,7 @@ wechat-chrome-quickclip-autopilot/
 - macOS，安装 `zsh`、`osascript`（系统自带）、`rg` 和 `jq`。
 - Google Chrome 正常安装；使用的是你日常的、包含文章登录态的 Profile。
 - 已安装 [Obsidian Web Clipper](https://obsidian.md/clipper) 扩展，并且 **Quick clip** 配置为无需确认直接写入目标 vault 的 `raw/articles`。
-- Web Clipper 快捷键为 `⌥⇧O`；如有改动，请对应调整脚本。
+- Web Clipper 快捷键为 `⇧⌘P`；如有改动，请对应调整脚本。
 - macOS「系统设置 → 隐私与安全性 → 辅助功能」已允许 `/usr/bin/osascript` 发送按键。
 - 需要一个 Obsidian vault；若希望自动生成知识库层，还应有 `AGENTS.md` / `CLAUDE.md` 说明 `raw/` 与 `wiki/` 的维护规则。
 

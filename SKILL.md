@@ -24,7 +24,7 @@ vault's `AGENTS.md` and `CLAUDE.md` for its storage and organization schema.
    The script waits a short fixed interval after opening the already-open tab;
    it neither executes page JavaScript nor returns or stores article text. It
    then triggers the already-configured Obsidian Web Clipper Quick clip keyboard
-   command (`⌥⇧O`) once.
+   command (`⇧⌘P`) once.
 3. Interpret the command's JSON result:
    - `captured`: read only the returned raw Markdown file. Verify meaningful
      article content and the original `mp.weixin.qq.com` URL.
