@@ -14,7 +14,7 @@
 Skill 校验链接并锁定单次任务
         ↓
 日常 Chrome 前台打开文章
-        ↓  后台每 3 秒检查一次 Chrome 原生加载状态
+        ↓  固定等待 2 秒
 发送 Obsidian Web Clipper Quick clip 快捷键（默认 ⌥⇧O）
         ↓
 Obsidian Web Clipper 写入 <vault>/raw/articles/
@@ -41,7 +41,7 @@ wechat-chrome-quickclip-autopilot/
 
 - macOS，安装 `zsh`、`osascript`（系统自带）、`rg` 和 `jq`。
 - Google Chrome 正常安装；使用的是你日常的、包含文章登录态的 Profile。
-- 已安装 [Obsidian Web Clipper](https://obsidian.md/clipper) 扩展，并且 **Quick clip** 配置为无需确认直接写入目标 vault 的 `raw/articles`。
+- 已安装 [Obsidian Web Clipper](https://obsidian.md/clipper) 扩展，目标 vault/文件夹为 `SOC Learning/raw/articles`。若快捷键会打开剪藏面板，需由用户点击“添加到 Obsidian”；本脚本只触发快捷键。
 - Web Clipper 快捷键为 `⌥⇧O`；如有改动，请对应调整脚本。
 - macOS「系统设置 → 隐私与安全性 → 辅助功能」已允许 `/usr/bin/osascript` 发送按键。
 - 需要一个 Obsidian vault；若希望自动生成知识库层，还应有 `AGENTS.md` / `CLAUDE.md` 说明 `raw/` 与 `wiki/` 的维护规则。
@@ -65,10 +65,8 @@ git clone https://github.com/TJU-ICLearner/wechat-chrome-quickclip-autopilot.git
 export OBSIDIAN_VAULT_DIR="$HOME/Documents/My Vault"
 # 可选：不在默认 raw/articles 时设置
 export OBSIDIAN_RAW_DIR="$OBSIDIAN_VAULT_DIR/raw/articles"
-# 可选：渲染慢的页面可提高等待时间；默认 3 秒
+# 可选：渲染慢的页面可提高等待时间；默认 2 秒
 export WECHAT_CLIP_WAIT_SECONDS=15
-# 可选：正文就绪检查次数；默认 5 次（3 秒间隔，最多约 15 秒）
-export WECHAT_CLIP_READY_POLL_ATTEMPTS=5
 # 可选：每 2 秒检查一次，默认 30 次（约 60 秒）
 export WECHAT_CLIP_POLL_ATTEMPTS=30
 ```
@@ -83,7 +81,7 @@ export WECHAT_CLIP_POLL_ATTEMPTS=30
 $wechat-chrome-quickclip-autopilot https://mp.weixin.qq.com/s/...
 ```
 
-也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。它每隔 3 秒读取一次 Chrome 的**原生页面加载状态**，最多 5 次；不会执行页面 JavaScript，也不会读取、保存或上传正文。页面停止加载后才前置 Chrome，等待 0.4 秒让键盘焦点稳定，再发送一次快捷键并恢复此前应用。这样不会因重复 Quick clip 产生重复笔记；若超时，则返回 `pending`，由用户处理登录、验证或网络问题后重试。
+也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。它打开文章后固定等待 2 秒，再发送一次快捷键；不会执行页面 JavaScript，也不会读取、保存或上传正文。若 Web Clipper 打开剪藏面板，用户需点击“添加到 Obsidian”；若超时仍未落盘，则返回 `pending`。
 
 ### 推荐入口：直接调用 Codex / Claudian
 
@@ -116,7 +114,7 @@ cc-connect 可以把手机微信里的 `/new + 公众号链接` 转为 Codex 任
 | `busy` | 另一篇文章仍在剪藏。 | 等待结束，不要并发发送快捷键。 |
 | `permission_required` | macOS 拒绝键盘自动化。 | 授权 `osascript` 辅助功能后重试。 |
 | `chrome_unavailable` | AppleScript 无法操作 Chrome。 | 打开带 Web Clipper 的日常 Chrome 窗口并置前。 |
-| `pending` | Chrome 页面仍在加载，或剪藏后没有确认新文件。 | 检查 Chrome 的登录/验证/网络，以及 Web Clipper 的 Quick clip vault、文件夹和模板。 |
+| `pending` | 快捷键已发送但未确认新文件。 | 检查 Chrome 的登录/验证/网络，以及 Web Clipper 的 Quick clip vault、文件夹和是否需要点击保存。 |
 | `error` | URL 或配置参数不合法。 | 修正输入或环境变量。 |
 
 ## 安全边界

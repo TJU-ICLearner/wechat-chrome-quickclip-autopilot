@@ -8,8 +8,7 @@ raw_dir="${OBSIDIAN_RAW_DIR:-$vault_dir/raw/articles}"
 log_file="$vault_dir/.claudian/logs/wechat-chrome-clipper.log"
 lock_dir="$vault_dir/.claudian/wechat-chrome-clipper.lock"
 url="${1:-}"
-render_wait_seconds="${WECHAT_CLIP_WAIT_SECONDS:-3}"
-ready_poll_attempts="${WECHAT_CLIP_READY_POLL_ATTEMPTS:-5}"
+render_wait_seconds="${WECHAT_CLIP_WAIT_SECONDS:-2}"
 poll_attempts="${WECHAT_CLIP_POLL_ATTEMPTS:-30}"
 
 if [[ ! "$url" =~ '^https://mp\.weixin\.qq\.com/' ]]; then
@@ -17,8 +16,8 @@ if [[ ! "$url" =~ '^https://mp\.weixin\.qq\.com/' ]]; then
   exit 64
 fi
 
-if [[ ! "$render_wait_seconds" =~ '^[0-9]+$' || ! "$ready_poll_attempts" =~ '^[1-9][0-9]*$' || ! "$poll_attempts" =~ '^[1-9][0-9]*$' ]]; then
-  print -r -- '{"status":"error","reason":"WECHAT_CLIP_WAIT_SECONDS, WECHAT_CLIP_READY_POLL_ATTEMPTS, and WECHAT_CLIP_POLL_ATTEMPTS must be positive integers"}'
+if [[ ! "$render_wait_seconds" =~ '^[0-9]+$' || ! "$poll_attempts" =~ '^[1-9][0-9]*$' ]]; then
+  print -r -- '{"status":"error","reason":"WECHAT_CLIP_WAIT_SECONDS and WECHAT_CLIP_POLL_ATTEMPTS must be positive integers"}'
   exit 64
 fi
 
@@ -31,26 +30,6 @@ trap 'rmdir "$lock_dir"' EXIT
 
 started_at="$(date '+%Y-%m-%d %H:%M:%S')"
 print -r -- "[$started_at] clipping requested: $url" >> "$log_file"
-
-# Restore the user's prior foreground app after Quick clip. If Chrome was
-# already frontmost, leave it there. Failing to read this is harmless: the
-# later keystroke still produces the authoritative permission result.
-previous_frontmost_app="$(osascript <<'APPLESCRIPT' 2>/dev/null || true
-tell application "System Events"
-  return name of first application process whose frontmost is true
-end tell
-APPLESCRIPT
-)"
-
-restore_previous_app() {
-  if [[ -n "$previous_frontmost_app" && "$previous_frontmost_app" != "Google Chrome" ]]; then
-    osascript - "$previous_frontmost_app" <<'APPLESCRIPT' >/dev/null 2>&1 || true
-on run argv
-  tell application (item 1 of argv) to activate
-end run
-APPLESCRIPT
-  fi
-}
 
 # This intentionally uses the user's normal Chrome profile, where Obsidian Web
 # Clipper is installed. Quick clip must already be configured to save directly
@@ -69,39 +48,12 @@ then
   exit 78
 fi
 
-# Keep Chrome out of the way while checking its native load state. This uses
-# no page JavaScript and does not return, store, or parse article text.
-restore_previous_app
-article_ready=false
-for ((attempt = 1; attempt <= ready_poll_attempts; attempt++)); do
-  sleep "$render_wait_seconds"
-  if readiness_output="$(osascript 2>&1 <<'APPLESCRIPT'
-tell application "Google Chrome"
-  if (count of windows) is 0 then return "waiting"
-  if loading of active tab of front window then return "loading"
-  return "ready"
-end tell
-APPLESCRIPT
-)"; then
-    readiness="$readiness_output"
-  else
-    readiness="waiting"
-  fi
-  if [[ "$readiness" == "ready" ]]; then
-    article_ready=true
-    break
-  fi
-done
-
-if [[ "$article_ready" != true ]]; then
-  print -r -- "[$(date '+%Y-%m-%d %H:%M:%S')] Chrome page still loading after $ready_poll_attempts checks" >> "$log_file"
-  print -r -- '{"status":"pending","reason":"The Chrome tab was still loading after repeated checks; resolve loading, login, or verification in normal Chrome, then retry"}'
-  exit 1
-fi
+# Keep the initial-release flow: wait a short, fixed interval then send the
+# configured shortcut once. No page JavaScript or Chrome load-state inspection.
+sleep "$render_wait_seconds"
 
 if ! osascript <<'APPLESCRIPT'
 tell application "Google Chrome" to activate
-delay 0.4
 tell application "System Events"
   tell process "Google Chrome"
     keystroke "o" using {option down, shift down}
@@ -113,8 +65,6 @@ then
   print -r -- '{"status":"permission_required","reason":"Allow osascript or the calling app to control Google Chrome in macOS Accessibility settings"}'
   exit 77
 fi
-
-restore_previous_app
 
 # Web Clipper writes asynchronously through Obsidian. Confirm the saved raw
 # source by its original URL rather than guessing its title-derived filename.
