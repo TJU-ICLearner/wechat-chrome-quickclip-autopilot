@@ -8,7 +8,7 @@ raw_dir="${OBSIDIAN_RAW_DIR:-$vault_dir/raw/articles}"
 log_file="$vault_dir/.claudian/logs/wechat-chrome-clipper.log"
 lock_dir="$vault_dir/.claudian/wechat-chrome-clipper.lock"
 url="${1:-}"
-render_wait_seconds="${WECHAT_CLIP_WAIT_SECONDS:-2}"
+render_wait_seconds="${WECHAT_CLIP_WAIT_SECONDS:-5}"
 poll_attempts="${WECHAT_CLIP_POLL_ATTEMPTS:-30}"
 
 if [[ ! "$url" =~ '^https://mp\.weixin\.qq\.com/' ]]; then

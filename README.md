@@ -14,7 +14,7 @@
 Skill 校验链接并锁定单次任务
         ↓
 日常 Chrome 前台打开文章
-        ↓  固定等待 2 秒
+        ↓  固定等待 5 秒
 发送 Obsidian Web Clipper Quick clip 快捷键（默认 ⌥⇧O）
         ↓
 Obsidian Web Clipper 写入 <vault>/raw/articles/
@@ -65,7 +65,7 @@ git clone https://github.com/TJU-ICLearner/wechat-chrome-quickclip-autopilot.git
 export OBSIDIAN_VAULT_DIR="$HOME/Documents/My Vault"
 # 可选：不在默认 raw/articles 时设置
 export OBSIDIAN_RAW_DIR="$OBSIDIAN_VAULT_DIR/raw/articles"
-# 可选：渲染慢的页面可提高等待时间；默认 2 秒
+# 可选：渲染慢的页面可提高等待时间；默认 5 秒
 export WECHAT_CLIP_WAIT_SECONDS=15
 # 可选：每 2 秒检查一次，默认 30 次（约 60 秒）
 export WECHAT_CLIP_POLL_ATTEMPTS=30
@@ -81,7 +81,7 @@ export WECHAT_CLIP_POLL_ATTEMPTS=30
 $wechat-chrome-quickclip-autopilot https://mp.weixin.qq.com/s/...
 ```
 
-也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。它打开文章后固定等待 2 秒，再发送一次快捷键；不会执行页面 JavaScript，也不会读取、保存或上传正文。Quick clip 直接落盘；若超时仍未落盘，则返回 `pending`。
+也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。它打开文章后固定等待 5 秒，再发送一次快捷键；不会执行页面 JavaScript，也不会读取、保存或上传正文。Quick clip 直接落盘；若超时仍未落盘，则返回 `pending`。
 
 ### 推荐入口：直接调用 Codex / Claudian
 
