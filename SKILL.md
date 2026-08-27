@@ -21,10 +21,10 @@ vault's `AGENTS.md` and `CLAUDE.md` for its storage and organization schema.
    "${CODEX_HOME:-$HOME/.codex}/skills/wechat-chrome-quickclip-autopilot/scripts/clip-wechat-in-chrome.zsh" '<URL>'
    ```
 
-   The script uses a local boolean readiness check on the already-open tab; it
-   neither returns nor stores article text. It then foregrounds the user's
-   normal Chrome only long enough to trigger the already-configured Obsidian
-   Web Clipper Quick clip keyboard command (`⌥⇧O`).
+   The script uses Chrome's native load-state boolean on the already-open tab;
+   it neither executes page JavaScript nor returns or stores article text. It
+   then foregrounds the user's normal Chrome only long enough to trigger the
+   already-configured Obsidian Web Clipper Quick clip keyboard command (`⌥⇧O`).
 3. Interpret the command's JSON result:
    - `captured`: read only the returned raw Markdown file. Verify meaningful
      article content and the original `mp.weixin.qq.com` URL.
@@ -34,10 +34,8 @@ vault's `AGENTS.md` and `CLAUDE.md` for its storage and organization schema.
    - `chrome_unavailable`: ask the user to open their normal Chrome Profile
      containing Obsidian Web Clipper and make that window frontmost; never
      select, create, or infer a different Chrome Profile.
-   - `pending`: report the stated local condition. If it requests Chrome's
-     “Allow JavaScript from Apple Events” setting, ask the user to enable that
-     one-time Chrome developer setting; otherwise check Web Clipper's target
-     folder and the Chrome loading/login state.
+   - `pending`: report the stated local condition and ask the user to check the
+     Chrome loading/login state or Web Clipper's target folder.
    - `error`: report the exact local validation failure without fetching a
      substitute source.
 4. Only after `captured`, organize that exact raw file using

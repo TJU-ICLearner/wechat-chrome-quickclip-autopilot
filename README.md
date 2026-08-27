@@ -14,7 +14,7 @@
 Skill 校验链接并锁定单次任务
         ↓
 日常 Chrome 前台打开文章
-        ↓  后台每 3 秒检查一次“正文已渲染”
+        ↓  后台每 3 秒检查一次 Chrome 原生加载状态
 发送 Obsidian Web Clipper Quick clip 快捷键（默认 ⌥⇧O）
         ↓
 Obsidian Web Clipper 写入 <vault>/raw/articles/
@@ -44,7 +44,6 @@ wechat-chrome-quickclip-autopilot/
 - 已安装 [Obsidian Web Clipper](https://obsidian.md/clipper) 扩展，并且 **Quick clip** 配置为无需确认直接写入目标 vault 的 `raw/articles`。
 - Web Clipper 快捷键为 `⌥⇧O`；如有改动，请对应调整脚本。
 - macOS「系统设置 → 隐私与安全性 → 辅助功能」已允许 `/usr/bin/osascript` 发送按键。
-- 为启用无重复的后台正文就绪检查，在 Chrome 菜单栏选择「查看 → 开发者 → 允许 Apple 事件中的 JavaScript」。这是 Chrome 的一次性本地开关；检查只返回“正文是否就绪”的布尔结果，不读取或保存正文。
 - 需要一个 Obsidian vault；若希望自动生成知识库层，还应有 `AGENTS.md` / `CLAUDE.md` 说明 `raw/` 与 `wiki/` 的维护规则。
 
 ## 安装
@@ -84,7 +83,7 @@ export WECHAT_CLIP_POLL_ATTEMPTS=30
 $wechat-chrome-quickclip-autopilot https://mp.weixin.qq.com/s/...
 ```
 
-也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。它每隔 3 秒在已打开的标签页做一次**布尔型正文就绪检查**，最多 5 次；不会读取、保存或上传正文。检测到正文后才前置 Chrome 并发送一次快捷键，随后恢复此前的前台应用。这样不会因重复 Quick clip 产生重复笔记；若超时，则返回 `pending`，由用户处理登录、验证或网络问题后重试。
+也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。它每隔 3 秒读取一次 Chrome 的**原生页面加载状态**，最多 5 次；不会执行页面 JavaScript，也不会读取、保存或上传正文。页面停止加载后才前置 Chrome 并发送一次快捷键，随后恢复此前的前台应用。这样不会因重复 Quick clip 产生重复笔记；若超时，则返回 `pending`，由用户处理登录、验证或网络问题后重试。
 
 ### 推荐入口：直接调用 Codex / Claudian
 
@@ -117,12 +116,12 @@ cc-connect 可以把手机微信里的 `/new + 公众号链接` 转为 Codex 任
 | `busy` | 另一篇文章仍在剪藏。 | 等待结束，不要并发发送快捷键。 |
 | `permission_required` | macOS 拒绝键盘自动化。 | 授权 `osascript` 辅助功能后重试。 |
 | `chrome_unavailable` | AppleScript 无法操作 Chrome。 | 打开带 Web Clipper 的日常 Chrome 窗口并置前。 |
-| `pending` | 正文在就绪检查期内未渲染，或剪藏后没有确认新文件。 | 检查 Chrome 的登录/验证/网络，以及 Web Clipper 的 Quick clip vault、文件夹和模板。 |
+| `pending` | Chrome 页面仍在加载，或剪藏后没有确认新文件。 | 检查 Chrome 的登录/验证/网络，以及 Web Clipper 的 Quick clip vault、文件夹和模板。 |
 | `error` | URL 或配置参数不合法。 | 修正输入或环境变量。 |
 
 ## 安全边界
 
-- 不读取、导出或上传 Cookie、密码、Profile、登录凭据或文章内容；就绪检查只取得“正文是否达到最小长度”的布尔结果。
+- 不读取、导出或上传 Cookie、密码、Profile、登录凭据或文章内容；就绪检查只取得 Chrome 原生的“页面是否仍在加载”状态。
 - 不使用 HTTP、CDP、Defuddle、无头浏览器或专用 Chrome Profile 抓取公众号内容。
 - 遇到验证码、登录墙、付费墙或正文不完整时停止；由用户在 Chrome 中完成验证。
 - 原始文章是事实来源；后续整理应写入 wiki 层，而不要改写正文。

@@ -69,9 +69,8 @@ then
   exit 78
 fi
 
-# Keep Chrome out of the way while checking only whether its already-open page
-# has a rendered WeChat article body. No body text is returned, stored, or
-# parsed here; the check prevents repeated Quick clip calls and duplicate notes.
+# Keep Chrome out of the way while checking its native load state. This uses
+# no page JavaScript and does not return, store, or parse article text.
 restore_previous_app
 article_ready=false
 for ((attempt = 1; attempt <= ready_poll_attempts; attempt++)); do
@@ -79,17 +78,13 @@ for ((attempt = 1; attempt <= ready_poll_attempts; attempt++)); do
   if readiness_output="$(osascript 2>&1 <<'APPLESCRIPT'
 tell application "Google Chrome"
   if (count of windows) is 0 then return "waiting"
-  return execute active tab of front window javascript "(() => { const article = document.getElementById('js_content'); return document.readyState === 'complete' && article && article.innerText.trim().length >= 200 ? 'ready' : 'waiting'; })()"
+  if loading of active tab of front window then return "loading"
+  return "ready"
 end tell
 APPLESCRIPT
 )"; then
     readiness="$readiness_output"
   else
-    if [[ "$readiness_output" == *"Allow JavaScript from Apple Events"* || "$readiness_output" == *"允许 Apple 事件中的 JavaScript"* ]]; then
-      print -r -- "[$(date '+%Y-%m-%d %H:%M:%S')] Chrome Apple Events JavaScript is disabled" >> "$log_file"
-      print -r -- '{"status":"pending","reason":"Enable Chrome View > Developer > Allow JavaScript from Apple Events, then retry; the readiness check does not read or save article text"}'
-      exit 1
-    fi
     readiness="waiting"
   fi
   if [[ "$readiness" == "ready" ]]; then
@@ -99,8 +94,8 @@ APPLESCRIPT
 done
 
 if [[ "$article_ready" != true ]]; then
-  print -r -- "[$(date '+%Y-%m-%d %H:%M:%S')] article body not ready after $ready_poll_attempts checks" >> "$log_file"
-  print -r -- '{"status":"pending","reason":"The WeChat article body was not rendered after repeated 3-second checks; resolve loading, login, or verification in normal Chrome, then retry"}'
+  print -r -- "[$(date '+%Y-%m-%d %H:%M:%S')] Chrome page still loading after $ready_poll_attempts checks" >> "$log_file"
+  print -r -- '{"status":"pending","reason":"The Chrome tab was still loading after repeated checks; resolve loading, login, or verification in normal Chrome, then retry"}'
   exit 1
 fi
 
