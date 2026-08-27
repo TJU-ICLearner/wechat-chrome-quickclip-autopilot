@@ -8,7 +8,7 @@ raw_dir="${OBSIDIAN_RAW_DIR:-$vault_dir/raw/articles}"
 log_file="$vault_dir/.claudian/logs/wechat-chrome-clipper.log"
 lock_dir="$vault_dir/.claudian/wechat-chrome-clipper.lock"
 url="${1:-}"
-render_wait_seconds="${WECHAT_CLIP_WAIT_SECONDS:-5}"
+render_wait_seconds="${WECHAT_CLIP_WAIT_SECONDS:-3.5}"
 poll_attempts="${WECHAT_CLIP_POLL_ATTEMPTS:-30}"
 
 if [[ ! "$url" =~ '^https://mp\.weixin\.qq\.com/' ]]; then
@@ -16,8 +16,8 @@ if [[ ! "$url" =~ '^https://mp\.weixin\.qq\.com/' ]]; then
   exit 64
 fi
 
-if [[ ! "$render_wait_seconds" =~ '^[0-9]+$' || ! "$poll_attempts" =~ '^[1-9][0-9]*$' ]]; then
-  print -r -- '{"status":"error","reason":"WECHAT_CLIP_WAIT_SECONDS and WECHAT_CLIP_POLL_ATTEMPTS must be positive integers"}'
+if [[ ! "$render_wait_seconds" =~ '^[0-9]+([.][0-9]+)?$' || ! "$poll_attempts" =~ '^[1-9][0-9]*$' ]]; then
+  print -r -- '{"status":"error","reason":"WECHAT_CLIP_WAIT_SECONDS must be a non-negative number and WECHAT_CLIP_POLL_ATTEMPTS must be a positive integer"}'
   exit 64
 fi
 
