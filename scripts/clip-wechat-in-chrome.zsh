@@ -9,6 +9,7 @@ log_file="$vault_dir/.claudian/logs/wechat-chrome-clipper.log"
 lock_dir="$vault_dir/.claudian/wechat-chrome-clipper.lock"
 url="${1:-}"
 render_wait_seconds="${WECHAT_CLIP_WAIT_SECONDS:-3}"
+ready_poll_attempts="${WECHAT_CLIP_READY_POLL_ATTEMPTS:-5}"
 poll_attempts="${WECHAT_CLIP_POLL_ATTEMPTS:-30}"
 
 if [[ ! "$url" =~ '^https://mp\.weixin\.qq\.com/' ]]; then
@@ -16,8 +17,8 @@ if [[ ! "$url" =~ '^https://mp\.weixin\.qq\.com/' ]]; then
   exit 64
 fi
 
-if [[ ! "$render_wait_seconds" =~ '^[0-9]+$' || ! "$poll_attempts" =~ '^[1-9][0-9]*$' ]]; then
-  print -r -- '{"status":"error","reason":"WECHAT_CLIP_WAIT_SECONDS and WECHAT_CLIP_POLL_ATTEMPTS must be positive integers"}'
+if [[ ! "$render_wait_seconds" =~ '^[0-9]+$' || ! "$ready_poll_attempts" =~ '^[1-9][0-9]*$' || ! "$poll_attempts" =~ '^[1-9][0-9]*$' ]]; then
+  print -r -- '{"status":"error","reason":"WECHAT_CLIP_WAIT_SECONDS, WECHAT_CLIP_READY_POLL_ATTEMPTS, and WECHAT_CLIP_POLL_ATTEMPTS must be positive integers"}'
   exit 64
 fi
 
@@ -41,6 +42,16 @@ end tell
 APPLESCRIPT
 )"
 
+restore_previous_app() {
+  if [[ -n "$previous_frontmost_app" && "$previous_frontmost_app" != "Google Chrome" ]]; then
+    osascript - "$previous_frontmost_app" <<'APPLESCRIPT' >/dev/null 2>&1 || true
+on run argv
+  tell application (item 1 of argv) to activate
+end run
+APPLESCRIPT
+  fi
+}
+
 # This intentionally uses the user's normal Chrome profile, where Obsidian Web
 # Clipper is installed. Quick clip must already be configured to save directly
 # to raw/articles.
@@ -58,8 +69,31 @@ then
   exit 78
 fi
 
-# Allow the WeChat article to render before invoking Web Clipper's Quick clip.
-sleep "$render_wait_seconds"
+# Keep Chrome out of the way while checking only whether its already-open page
+# has a rendered WeChat article body. No body text is returned, stored, or
+# parsed here; the check prevents repeated Quick clip calls and duplicate notes.
+restore_previous_app
+article_ready=false
+for ((attempt = 1; attempt <= ready_poll_attempts; attempt++)); do
+  sleep "$render_wait_seconds"
+  readiness="$(osascript <<'APPLESCRIPT' 2>/dev/null || true
+tell application "Google Chrome"
+  if (count of windows) is 0 then return "waiting"
+  return execute active tab of front window javascript "(() => { const article = document.getElementById('js_content'); return document.readyState === 'complete' && article && article.innerText.trim().length >= 200 ? 'ready' : 'waiting'; })()"
+end tell
+APPLESCRIPT
+)"
+  if [[ "$readiness" == "ready" ]]; then
+    article_ready=true
+    break
+  fi
+done
+
+if [[ "$article_ready" != true ]]; then
+  print -r -- "[$(date '+%Y-%m-%d %H:%M:%S')] article body not ready after $ready_poll_attempts checks" >> "$log_file"
+  print -r -- '{"status":"pending","reason":"The WeChat article body was not rendered after repeated 3-second checks; resolve loading, login, or verification in normal Chrome, then retry"}'
+  exit 1
+fi
 
 if ! osascript <<'APPLESCRIPT'
 tell application "Google Chrome" to activate
@@ -75,13 +109,7 @@ then
   exit 77
 fi
 
-if [[ -n "$previous_frontmost_app" && "$previous_frontmost_app" != "Google Chrome" ]]; then
-  osascript - "$previous_frontmost_app" <<'APPLESCRIPT' >/dev/null 2>&1 || true
-on run argv
-  tell application (item 1 of argv) to activate
-end run
-APPLESCRIPT
-fi
+restore_previous_app
 
 # Web Clipper writes asynchronously through Obsidian. Confirm the saved raw
 # source by its original URL rather than guessing its title-derived filename.

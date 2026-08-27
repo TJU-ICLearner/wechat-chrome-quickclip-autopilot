@@ -14,7 +14,7 @@
 Skill 校验链接并锁定单次任务
         ↓
 日常 Chrome 前台打开文章
-        ↓  等待页面渲染
+        ↓  后台每 3 秒检查一次“正文已渲染”
 发送 Obsidian Web Clipper Quick clip 快捷键（默认 ⌥⇧O）
         ↓
 Obsidian Web Clipper 写入 <vault>/raw/articles/
@@ -67,6 +67,8 @@ export OBSIDIAN_VAULT_DIR="$HOME/Documents/My Vault"
 export OBSIDIAN_RAW_DIR="$OBSIDIAN_VAULT_DIR/raw/articles"
 # 可选：渲染慢的页面可提高等待时间；默认 3 秒
 export WECHAT_CLIP_WAIT_SECONDS=15
+# 可选：正文就绪检查次数；默认 5 次（3 秒间隔，最多约 15 秒）
+export WECHAT_CLIP_READY_POLL_ATTEMPTS=5
 # 可选：每 2 秒检查一次，默认 30 次（约 60 秒）
 export WECHAT_CLIP_POLL_ATTEMPTS=30
 ```
@@ -81,7 +83,7 @@ export WECHAT_CLIP_POLL_ATTEMPTS=30
 $wechat-chrome-quickclip-autopilot https://mp.weixin.qq.com/s/...
 ```
 
-也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。默认只等待 3 秒后发送快捷键，随后会自动回到此前的前台应用；不要在这 3 秒内切换应用或标签页。若某篇文章经常剪藏到不完整正文，再为该环境增大 `WECHAT_CLIP_WAIT_SECONDS`。
+也可让 Skill 自动匹配单一 `mp.weixin.qq.com` 链接。它每隔 3 秒在已打开的标签页做一次**布尔型正文就绪检查**，最多 5 次；不会读取、保存或上传正文。检测到正文后才前置 Chrome 并发送一次快捷键，随后恢复此前的前台应用。这样不会因重复 Quick clip 产生重复笔记；若超时，则返回 `pending`，由用户处理登录、验证或网络问题后重试。
 
 ### 推荐入口：直接调用 Codex / Claudian
 
@@ -114,12 +116,12 @@ cc-connect 可以把手机微信里的 `/new + 公众号链接` 转为 Codex 任
 | `busy` | 另一篇文章仍在剪藏。 | 等待结束，不要并发发送快捷键。 |
 | `permission_required` | macOS 拒绝键盘自动化。 | 授权 `osascript` 辅助功能后重试。 |
 | `chrome_unavailable` | AppleScript 无法操作 Chrome。 | 打开带 Web Clipper 的日常 Chrome 窗口并置前。 |
-| `pending` | 快捷键已发送，但没有确认新文件。 | 检查 Web Clipper 的 Quick clip vault、文件夹和模板。 |
+| `pending` | 正文在就绪检查期内未渲染，或剪藏后没有确认新文件。 | 检查 Chrome 的登录/验证/网络，以及 Web Clipper 的 Quick clip vault、文件夹和模板。 |
 | `error` | URL 或配置参数不合法。 | 修正输入或环境变量。 |
 
 ## 安全边界
 
-- 不读取、导出或上传 Cookie、密码、Profile、登录凭据或文章以外的浏览器数据。
+- 不读取、导出或上传 Cookie、密码、Profile、登录凭据或文章内容；就绪检查只取得“正文是否达到最小长度”的布尔结果。
 - 不使用 HTTP、CDP、Defuddle、无头浏览器或专用 Chrome Profile 抓取公众号内容。
 - 遇到验证码、登录墙、付费墙或正文不完整时停止；由用户在 Chrome 中完成验证。
 - 原始文章是事实来源；后续整理应写入 wiki 层，而不要改写正文。

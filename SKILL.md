@@ -21,9 +21,10 @@ vault's `AGENTS.md` and `CLAUDE.md` for its storage and organization schema.
    "${CODEX_HOME:-$HOME/.codex}/skills/wechat-chrome-quickclip-autopilot/scripts/clip-wechat-in-chrome.zsh" '<URL>'
    ```
 
-   This foregrounds the user's normal Chrome and triggers the already-configured
-   Obsidian Web Clipper Quick clip keyboard command (`⌥⇧O`). It is expected to
-   briefly interrupt their Chrome session.
+   The script uses a local boolean readiness check on the already-open tab; it
+   neither returns nor stores article text. It then foregrounds the user's
+   normal Chrome only long enough to trigger the already-configured Obsidian
+   Web Clipper Quick clip keyboard command (`⌥⇧O`).
 3. Interpret the command's JSON result:
    - `captured`: read only the returned raw Markdown file. Verify meaningful
      article content and the original `mp.weixin.qq.com` URL.
